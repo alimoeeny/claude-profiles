@@ -73,6 +73,11 @@ func copyDir(src, dst string) error {
 		if d.Type()&fs.ModeSymlink != 0 {
 			return nil
 		}
+		// Skip nested .git directories — they would be treated as submodules
+		// by the profile repo, preventing git add -A from staging their contents
+		if d.IsDir() && d.Name() == ".git" {
+			return filepath.SkipDir
+		}
 		rel, err := filepath.Rel(src, filePath)
 		if err != nil {
 			return err
