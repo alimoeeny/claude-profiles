@@ -69,6 +69,10 @@ func copyDir(src, dst string) error {
 		if err != nil {
 			return err
 		}
+		// Skip symlinks — they may point to directories and can't be read as files
+		if d.Type()&fs.ModeSymlink != 0 {
+			return nil
+		}
 		rel, err := filepath.Rel(src, filePath)
 		if err != nil {
 			return err

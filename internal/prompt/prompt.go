@@ -2,7 +2,9 @@ package prompt
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 	"time"
@@ -89,10 +91,14 @@ func autoSaveMessage() string {
 }
 
 // Ask prints a prompt and reads a single line of input.
+// Returns empty string on EOF (treated as the user accepting the default).
 func Ask(promptText string) (string, error) {
 	fmt.Print(promptText)
 	reader := bufio.NewReader(os.Stdin)
 	line, err := reader.ReadString('\n')
+	if errors.Is(err, io.EOF) {
+		return strings.TrimSpace(line), nil
+	}
 	return strings.TrimSpace(line), err
 }
 
