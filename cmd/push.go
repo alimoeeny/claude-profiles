@@ -5,8 +5,8 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/ali/claude-profile-manager/internal/config"
-	"github.com/ali/claude-profile-manager/internal/prompt"
+	"github.com/alimoeeny/claude-profile-manager/internal/config"
+	"github.com/alimoeeny/claude-profile-manager/internal/prompt"
 	"github.com/spf13/cobra"
 )
 

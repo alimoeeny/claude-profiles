@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ali/claude-profile-manager/internal/claude"
-	"github.com/ali/claude-profile-manager/internal/config"
-	"github.com/ali/claude-profile-manager/internal/profile"
-	"github.com/ali/claude-profile-manager/internal/prompt"
+	"github.com/alimoeeny/claude-profile-manager/internal/claude"
+	"github.com/alimoeeny/claude-profile-manager/internal/config"
+	"github.com/alimoeeny/claude-profile-manager/internal/profile"
+	"github.com/alimoeeny/claude-profile-manager/internal/prompt"
 	"github.com/spf13/cobra"
 )
 
