@@ -4,9 +4,15 @@ import (
 	"os/exec"
 )
 
+// runPgrep is the function used to check for a running process by name.
+// It can be replaced in tests to avoid calling the real pgrep binary.
+var runPgrep = func(name string) error {
+	return exec.Command("pgrep", "-x", name).Run()
+}
+
 // IsRunning returns true if a process named "claude" is currently running.
 func IsRunning() (bool, error) {
-	err := exec.Command("pgrep", "-x", "claude").Run()
+	err := runPgrep("claude")
 	if err != nil {
 		if exitErr, ok := err.(*exec.ExitError); ok && exitErr.ExitCode() == 1 {
 			return false, nil
