@@ -7,3 +7,25 @@
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 If you use Claude Code across multiple contexts — a day job, side projects, open-source work — you've probably wished you could keep separate `CLAUDE.md` files, different MCP server setups, or distinct settings without manually copying files around. `claude-profiles` treats each configuration as a named snapshot you can switch with one command.
+
+## Demo
+
+```
+$ claude-profiles list
+  default
+  personal
+* work         (dirty)
+
+$ claude-profiles switch personal
+Active profile has unsaved changes.
+  [s] Save changes to "work"
+  [d] Discard changes
+  [c] Cancel
+Choice: s
+Saved. Switched to "personal".
+
+$ claude-profiles list
+  default
+* personal
+  work
+```
