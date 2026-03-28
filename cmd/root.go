@@ -9,9 +9,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Version is overridden at link time by GoReleaser via -ldflags.
+var Version = "dev"
+
 var rootCmd = &cobra.Command{
-	Use:   "claude-profiles",
-	Short: "Manage multiple Claude Code profiles",
+	Use:     "claude-profiles",
+	Short:   "Manage multiple Claude Code profiles",
+	Version: Version,
 }
 
 func Execute() {
