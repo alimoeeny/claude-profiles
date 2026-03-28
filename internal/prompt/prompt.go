@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"strings"
 
 	"github.com/alimoeeny/claude-profiles/internal/config"
@@ -25,7 +24,7 @@ const (
 // HandleDirty checks for unsaved changes and prompts the user if dirty.
 // allowCarryOver adds a [C]arry over option (used by duplicate).
 // Returns ActionSave (clean or saved), ActionDiscard, ActionCarryOver, or ActionCancel.
-func HandleDirty(homeDir, storeDir, currentProfile string, allowCarryOver bool) (DirtyAction, error) {
+func HandleDirty(r io.Reader, homeDir, storeDir, currentProfile string, allowCarryOver bool) (DirtyAction, error) {
 	cfg, err := config.Load(storeDir)
 	if err != nil {
 		return ActionCancel, err
@@ -48,7 +47,7 @@ func HandleDirty(homeDir, storeDir, currentProfile string, allowCarryOver bool) 
 		promptText = "  [S]ave / [D]iscard / [C]ancel: "
 	}
 
-	reader := bufio.NewReader(os.Stdin)
+	reader := bufio.NewReader(r)
 	for {
 		fmt.Print(promptText)
 		line, _ := reader.ReadString('\n')
@@ -111,9 +110,9 @@ func UpdateSnapshotHash(homeDir, storeDir string) error {
 
 // Ask prints a prompt and reads a single line of input.
 // Returns empty string on EOF (treated as the user accepting the default).
-func Ask(promptText string) (string, error) {
+func Ask(r io.Reader, promptText string) (string, error) {
 	fmt.Print(promptText)
-	reader := bufio.NewReader(os.Stdin)
+	reader := bufio.NewReader(r)
 	line, err := reader.ReadString('\n')
 	if errors.Is(err, io.EOF) {
 		return strings.TrimSpace(line), nil
@@ -122,8 +121,8 @@ func Ask(promptText string) (string, error) {
 }
 
 // Confirm asks a yes/no question. Returns true only on "y" or "Y".
-func Confirm(promptText string) (bool, error) {
-	answer, err := Ask(promptText)
+func Confirm(r io.Reader, promptText string) (bool, error) {
+	answer, err := Ask(r, promptText)
 	if err != nil {
 		return false, err
 	}

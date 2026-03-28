@@ -31,7 +31,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	storeDir, err := prompt.Ask(fmt.Sprintf("Profiles store path [%s]: ", defaultPath))
+	storeDir, err := prompt.Ask(os.Stdin, fmt.Sprintf("Profiles store path [%s]: ", defaultPath))
 	if err != nil {
 		return err
 	}
@@ -51,7 +51,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 	cfg := &config.Config{}
 
 	// Optionally configure backup remote
-	remote, err := prompt.Ask("Backup remote path for rsync (leave blank to skip): ")
+	remote, err := prompt.Ask(os.Stdin, "Backup remote path for rsync (leave blank to skip): ")
 	if err != nil {
 		return err
 	}
@@ -64,7 +64,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	profileName, err := prompt.Ask("Name for your current profile [main]: ")
+	profileName, err := prompt.Ask(os.Stdin, "Name for your current profile [main]: ")
 	if err != nil {
 		return err
 	}
