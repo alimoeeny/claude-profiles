@@ -137,3 +137,35 @@ backup_remote = "user@host:/backups/claude-profiles" # rsync destination for `pu
 ```
 
 The only field you'd typically set manually is `backup_remote`. You can also configure it interactively during `init` or when running `push` for the first time with no remote set.
+
+## Typical Workflows
+
+### Separate work and personal configs
+
+You use Claude Code at your day job with company-specific `CLAUDE.md` instructions and MCP servers. At home you want a clean slate.
+
+```bash
+claude-profiles init                   # saves current config as "main"
+claude-profiles duplicate work         # clone current setup as "work"
+claude-profiles create_fresh personal  # blank profile for personal use
+claude-profiles switch personal        # switch to it
+```
+
+### Experimenting with a new MCP server
+
+You want to try a new MCP configuration without risking your working setup.
+
+```bash
+claude-profiles duplicate experiment   # clone current profile
+# ... make changes inside Claude Code ...
+# if it works: keep using it
+# if it breaks:
+claude-profiles switch work            # discard and return to known-good
+```
+
+### Backing up and syncing across machines
+
+```bash
+claude-profiles backup                 # save a local timestamped .zip to ~/
+claude-profiles push                   # rsync the store to a remote path
+```
