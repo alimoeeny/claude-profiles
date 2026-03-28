@@ -52,7 +52,7 @@ func runDuplicate(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	action, err := prompt.HandleDirty(os.Stdin, home, storeDir, cfg.Current, true)
+	action, err := prompt.HandleDirty(stdin, home, storeDir, cfg.Current, true)
 	if err != nil {
 		return err
 	}
