@@ -6,9 +6,9 @@ import (
 )
 
 func TestIsRunning_WhenProcessRunning(t *testing.T) {
-	orig := runPgrep
-	defer func() { runPgrep = orig }()
-	runPgrep = func(name string) error { return nil }
+	orig := RunPgrep
+	defer func() { RunPgrep = orig }()
+	RunPgrep = func(name string) error { return nil }
 
 	running, err := IsRunning()
 	if err != nil {
@@ -20,10 +20,10 @@ func TestIsRunning_WhenProcessRunning(t *testing.T) {
 }
 
 func TestIsRunning_WhenProcessNotRunning(t *testing.T) {
-	orig := runPgrep
-	defer func() { runPgrep = orig }()
+	orig := RunPgrep
+	defer func() { RunPgrep = orig }()
 	// pgrep exits 1 when no process matches — simulate with "sh -c exit 1"
-	runPgrep = func(name string) error {
+	RunPgrep = func(name string) error {
 		return exec.Command("sh", "-c", "exit 1").Run()
 	}
 
@@ -37,10 +37,10 @@ func TestIsRunning_WhenProcessNotRunning(t *testing.T) {
 }
 
 func TestIsRunning_OnUnexpectedError(t *testing.T) {
-	orig := runPgrep
-	defer func() { runPgrep = orig }()
+	orig := RunPgrep
+	defer func() { RunPgrep = orig }()
 	// pgrep exits 2 on usage error — IsRunning should propagate this as an error
-	runPgrep = func(name string) error {
+	RunPgrep = func(name string) error {
 		return exec.Command("sh", "-c", "exit 2").Run()
 	}
 

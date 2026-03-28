@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"os/exec"
 	"path/filepath"
 
@@ -33,7 +32,7 @@ func runPush(cmd *cobra.Command, args []string) error {
 	}
 
 	if cfg.BackupRemote == "" {
-		dest, err := prompt.Ask(os.Stdin, "No remote configured. Enter rsync destination (or press Enter to skip): ")
+		dest, err := prompt.Ask(stdin, "No remote configured. Enter rsync destination (or press Enter to skip): ")
 		if err != nil {
 			return err
 		}

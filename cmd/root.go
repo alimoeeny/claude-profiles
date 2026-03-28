@@ -2,12 +2,17 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 
 	"github.com/alimoeeny/claude-profiles/internal/repopath"
 	"github.com/spf13/cobra"
 )
+
+// stdin is the reader used for all interactive prompts.
+// Tests replace it with a strings.Reader to inject input without touching os.Stdin.
+var stdin io.Reader = os.Stdin
 
 // Version is overridden at link time by GoReleaser via -ldflags.
 var Version = "dev"
