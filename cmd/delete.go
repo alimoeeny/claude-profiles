@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/alimoeeny/claude-profiles/internal/config"
 	"github.com/alimoeeny/claude-profiles/internal/profile"
@@ -45,7 +44,7 @@ func runDelete(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("profile %q not found", target)
 	}
 
-	ok, err := prompt.Confirm(os.Stdin, fmt.Sprintf("Delete profile %q? [y/N]: ", target))
+	ok, err := prompt.Confirm(stdin, fmt.Sprintf("Delete profile %q? [y/N]: ", target))
 	if err != nil {
 		return err
 	}
