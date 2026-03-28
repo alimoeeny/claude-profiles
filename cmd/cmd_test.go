@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"archive/zip"
 	"bytes"
 	"io"
 	"os"
@@ -418,6 +419,111 @@ func TestRunDuplicate_CleanCopy(t *testing.T) {
 	if cfg.Current != "alpha-copy" {
 		t.Errorf("config.Current = %q, want 'alpha-copy'", cfg.Current)
 	}
+}
+
+// --- zipDir ---
+
+func TestZipDir_ContainsAllFiles(t *testing.T) {
+	src := t.TempDir()
+	os.WriteFile(filepath.Join(src, "a.txt"), []byte("aaa"), 0644)
+	os.MkdirAll(filepath.Join(src, "sub"), 0755)
+	os.WriteFile(filepath.Join(src, "sub", "b.txt"), []byte("bbb"), 0644)
+
+	dest := filepath.Join(t.TempDir(), "out.zip")
+	if err := zipDir(src, dest); err != nil {
+		t.Fatalf("zipDir error: %v", err)
+	}
+
+	zr, err := openZipIndex(t, dest)
+	if err != nil {
+		t.Fatalf("open zip: %v", err)
+	}
+	want := map[string]string{"a.txt": "aaa", "sub/b.txt": "bbb"}
+	for name, wantContent := range want {
+		got, ok := zr[name]
+		if !ok {
+			t.Errorf("zip missing entry %q", name)
+			continue
+		}
+		if got != wantContent {
+			t.Errorf("zip[%q] = %q, want %q", name, got, wantContent)
+		}
+	}
+}
+
+func TestZipDir_EmptyDir(t *testing.T) {
+	src := t.TempDir()
+	dest := filepath.Join(t.TempDir(), "out.zip")
+
+	if err := zipDir(src, dest); err != nil {
+		t.Fatalf("zipDir on empty dir error: %v", err)
+	}
+
+	zr, err := openZipIndex(t, dest)
+	if err != nil {
+		t.Fatalf("open zip: %v", err)
+	}
+	if len(zr) != 0 {
+		t.Errorf("expected empty zip, got %d entries", len(zr))
+	}
+}
+
+// --- writeDefaultZip ---
+
+func TestWriteDefaultZip_ContainsExpectedFiles(t *testing.T) {
+	storeDir := t.TempDir()
+
+	if err := writeDefaultZip(storeDir); err != nil {
+		t.Fatalf("writeDefaultZip error: %v", err)
+	}
+
+	zipPath := filepath.Join(storeDir, "profiles", "default.zip")
+	if _, err := os.Stat(zipPath); err != nil {
+		t.Fatalf("default.zip not created: %v", err)
+	}
+
+	entries, err := openZipIndex(t, zipPath)
+	if err != nil {
+		t.Fatalf("open zip: %v", err)
+	}
+	if _, ok := entries[".claude.json"]; !ok {
+		t.Errorf("default.zip missing .claude.json; entries: %v", keys(entries))
+	}
+}
+
+// openZipIndex opens a zip file and returns a map of entry name → content.
+func openZipIndex(t *testing.T, path string) (map[string]string, error) {
+	t.Helper()
+	zr, err := zip.OpenReader(path)
+	if err != nil {
+		return nil, err
+	}
+	defer zr.Close()
+
+	out := make(map[string]string)
+	for _, f := range zr.File {
+		if f.FileInfo().IsDir() {
+			continue
+		}
+		rc, err := f.Open()
+		if err != nil {
+			return nil, err
+		}
+		var buf bytes.Buffer
+		io.Copy(&buf, rc)
+		rc.Close()
+		out[f.Name] = buf.String()
+	}
+	return out, nil
+}
+
+// keys returns the keys of a map for use in error messages.
+func keys(m map[string]string) []string {
+	ks := make([]string, 0, len(m))
+	for k := range m {
+		ks = append(ks, k)
+	}
+	return ks
 }
 
 // --- runCreateFresh ---
