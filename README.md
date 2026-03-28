@@ -29,3 +29,17 @@ $ claude-profiles list
 * personal
   work
 ```
+
+## Installation
+
+```bash
+go install github.com/alimoeeny/claude-profile-switcher@latest
+```
+
+Verify it worked:
+
+```bash
+claude-profiles --help
+```
+
+> **Note**: Requires Go 1.21 or later. Install Go at [go.dev/dl](https://go.dev/dl).
