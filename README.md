@@ -173,3 +173,17 @@ claude-profiles push                   # rsync the store to a remote path
 ## Platform Notes
 
 > **Platform**: Currently macOS only. Process detection uses `pgrep -x claude`, which is not available on Linux or Windows.
+
+## Contributing
+
+```bash
+go build ./...                   # build
+go test ./...                    # run all tests
+go test ./internal/profile/... -v  # run a single package
+```
+
+One architectural rule to keep in mind: every command that touches `~/.claude/` must follow this exact sequence — check Claude is not running, handle dirty state (save/discard/cancel), then restore the profile. Breaking this order can leave the user's config in an inconsistent state.
+
+Issues and Human-crafted PRs are welcome at [github.com/alimoeeny/claude-profile-manager](https://github.com/alimoeeny/claude-profile-manager).
+
+Of courese it is perfectly okay to use AI to help you develop your code, but please make sure to review it and understand it before submitting it as a PR. and explain your changes in the PR description.
