@@ -187,3 +187,7 @@ One architectural rule to keep in mind: every command that touches `~/.claude/` 
 Issues and Human-crafted PRs are welcome at [github.com/alimoeeny/claude-profile-manager](https://github.com/alimoeeny/claude-profile-manager).
 
 Of courese it is perfectly okay to use AI to help you develop your code, but please make sure to review it and understand it before submitting it as a PR. and explain your changes in the PR description.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
