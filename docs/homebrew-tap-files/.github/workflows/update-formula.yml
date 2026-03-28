@@ -1,0 +1,78 @@
+name: Update Formula
+
+on:
+  repository_dispatch:
+    types: [new-release]
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tap
+        uses: actions/checkout@v4
+
+      - name: Extract version
+        id: meta
+        run: |
+          VERSION="${{ github.event.client_payload.version }}"
+          echo "version=${VERSION#v}" >> "$GITHUB_OUTPUT"
+          echo "tag=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Download release assets and compute SHA256
+        id: sha
+        run: |
+          TAG="${{ steps.meta.outputs.tag }}"
+          BASE="https://github.com/alimoeeny/claude-profile-manager/releases/download/${TAG}"
+
+          curl -fsSL "${BASE}/claude-profile-manager_Darwin_arm64.tar.gz" -o arm64.tar.gz
+          curl -fsSL "${BASE}/claude-profile-manager_Darwin_amd64.tar.gz" -o amd64.tar.gz
+
+          echo "arm64=$(sha256sum arm64.tar.gz | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+          echo "amd64=$(sha256sum amd64.tar.gz | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+
+      - name: Update formula file
+        run: |
+          VERSION="${{ steps.meta.outputs.version }}"
+          ARM64="${{ steps.sha.outputs.arm64 }}"
+          AMD64="${{ steps.sha.outputs.amd64 }}"
+          FORMULA="Formula/claude-profile-manager.rb"
+
+          python3 - <<EOF
+          import re
+
+          with open("${FORMULA}") as f:
+              content = f.read()
+
+          content = re.sub(r'  version "[^"]*"', f'  version "${VERSION}"', content)
+
+          lines = content.split("\n")
+          out = []
+          next_sha_is = None
+          for line in lines:
+              if "Hardware::CPU.arm?" in line:
+                  next_sha_is = "arm64"
+                  out.append(line)
+              elif "Hardware::CPU.intel?" in line:
+                  next_sha_is = "amd64"
+                  out.append(line)
+              elif next_sha_is and re.match(r'\s+sha256 "', line):
+                  sha = "${ARM64}" if next_sha_is == "arm64" else "${AMD64}"
+                  out.append(re.sub(r'sha256 "[^"]*"', f'sha256 "{sha}"', line))
+                  next_sha_is = None
+              else:
+                  out.append(line)
+
+          with open("${FORMULA}", "w") as f:
+              f.write("\n".join(out))
+          EOF
+
+      - name: Commit and push
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/claude-profile-manager.rb
+          git commit -m "chore: update formula to v${{ steps.meta.outputs.version }}"
+          git push
