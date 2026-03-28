@@ -51,3 +51,43 @@ export PATH="$PATH:$(go env GOPATH)/bin"
 ```
 
 Add that line to your `~/.zshrc` or `~/.bashrc` to make it permanent.
+
+## Quick Start
+
+**1. Run `init` once** to create the profiles store and save your current `~/.claude` config as your first profile:
+
+```bash
+claude-profiles init
+# Profiles store path [~/.claude-profiles]: ↵
+# Name for your current profile [main]: ↵
+# Initialized profiles store at ~/.claude-profiles/
+# Active profile: main
+```
+
+**2. Create a second profile** — either a blank one or a clone of your current setup:
+
+```bash
+claude-profiles create_fresh work   # blank slate from the default template
+# or
+claude-profiles duplicate work      # exact copy of your current profile
+```
+
+**3. Switch to it:**
+
+```bash
+claude-profiles switch work
+```
+
+**4. When you're done, switch back** — the tool will ask what to do with any unsaved changes:
+
+```bash
+claude-profiles switch main
+# Active profile has unsaved changes.
+#   [s] Save changes to "work"
+#   [d] Discard changes
+#   [c] Cancel
+# Choice: s
+# Saved. Switched to "main".
+```
+
+---
