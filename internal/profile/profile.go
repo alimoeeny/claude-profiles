@@ -67,16 +67,14 @@ func Restore(storeDir, homeDir, name string) error {
 	}
 	defer r.Close()
 
-	cleanHome := filepath.Clean(homeDir)
 	for _, f := range r.File {
 		if f.FileInfo().IsDir() {
 			continue
 		}
-		target := filepath.Join(cleanHome, f.Name)
-		if !strings.HasPrefix(filepath.Clean(target)+string(os.PathSeparator), cleanHome+string(os.PathSeparator)) {
-			return fmt.Errorf("restore: unsafe path in zip: %s", f.Name)
+		if f.Name != ".claude.json" && !strings.HasPrefix(f.Name, ".claude/") {
+			return fmt.Errorf("restore: unexpected path in zip: %s", f.Name)
 		}
-		if err := extractFile(f, target); err != nil {
+		if err := extractFile(f, filepath.Join(homeDir, f.Name)); err != nil {
 			return fmt.Errorf("restore %s: %w", f.Name, err)
 		}
 	}

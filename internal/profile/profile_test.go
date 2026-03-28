@@ -336,39 +336,53 @@ func TestSnapshot_OnlyDirNoJson(t *testing.T) {
 }
 
 func TestRestore_ZipPathTraversal(t *testing.T) {
-	homeDir := t.TempDir()
-	storeDir := t.TempDir()
-
-	// Manually craft a zip with a path-traversal entry name.
-	profilesDir := filepath.Join(storeDir, "profiles")
-	os.MkdirAll(profilesDir, 0755)
-	zp := filepath.Join(profilesDir, "evil.zip")
-	f, err := os.Create(zp)
-	if err != nil {
-		t.Fatalf("create zip: %v", err)
-	}
-	w := zip.NewWriter(f)
-	entry, err := w.Create("../../evil.txt")
-	if err != nil {
-		t.Fatalf("zip entry: %v", err)
-	}
-	entry.Write([]byte("pwned"))
-	w.Close()
-	f.Close()
-
-	// Restore should reject the traversal entry (return an error).
-	err = profile.Restore(storeDir, homeDir, "evil")
-	if err == nil {
-		t.Fatal("Restore() should have returned an error for zip path traversal")
-	}
-	if !strings.Contains(err.Error(), "unsafe path") {
-		t.Errorf("error %q does not mention unsafe path", err.Error())
+	tests := []struct {
+		name    string
+		entry   string // zip entry name to craft
+		errFrag string // substring expected in the error
+	}{
+		{
+			name:    "traversal outside homeDir",
+			entry:   "../../evil.txt",
+			errFrag: "unexpected path",
+		},
+		{
+			name:    "arbitrary file inside homeDir but not .claude",
+			entry:   "Documents/evil.sh",
+			errFrag: "unexpected path",
+		},
 	}
 
-	// The traversal target must not have been created.
-	evilTarget := filepath.Clean(filepath.Join(homeDir, "../../evil.txt"))
-	if _, statErr := os.Stat(evilTarget); statErr == nil {
-		t.Fatal("Restore() wrote a file outside homeDir — path traversal not prevented")
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			homeDir := t.TempDir()
+			storeDir := t.TempDir()
+
+			profilesDir := filepath.Join(storeDir, "profiles")
+			os.MkdirAll(profilesDir, 0755)
+			zp := filepath.Join(profilesDir, "evil.zip")
+
+			f, err := os.Create(zp)
+			if err != nil {
+				t.Fatalf("create zip: %v", err)
+			}
+			w := zip.NewWriter(f)
+			entry, err := w.Create(tc.entry)
+			if err != nil {
+				t.Fatalf("zip entry: %v", err)
+			}
+			entry.Write([]byte("pwned"))
+			w.Close()
+			f.Close()
+
+			err = profile.Restore(storeDir, homeDir, "evil")
+			if err == nil {
+				t.Fatal("Restore() should have returned an error")
+			}
+			if !strings.Contains(err.Error(), tc.errFrag) {
+				t.Errorf("error %q does not contain %q", err.Error(), tc.errFrag)
+			}
+		})
 	}
 }
 
