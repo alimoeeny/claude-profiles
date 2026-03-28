@@ -56,7 +56,7 @@ func runCreateFresh(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	action, err := prompt.HandleDirty(home, storeDir, cfg.Current, false)
+	action, err := prompt.HandleDirty(os.Stdin, home, storeDir, cfg.Current, false)
 	if err != nil {
 		return err
 	}
