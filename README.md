@@ -169,3 +169,7 @@ claude-profiles switch work            # discard and return to known-good
 claude-profiles backup                 # save a local timestamped .zip to ~/
 claude-profiles push                   # rsync the store to a remote path
 ```
+
+## Platform Notes
+
+> **Platform**: Currently macOS only. Process detection uses `pgrep -x claude`, which is not available on Linux or Windows.
