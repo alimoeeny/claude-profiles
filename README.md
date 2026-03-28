@@ -109,3 +109,17 @@ Each profile is a zip snapshot of `~/.claude.json` and `~/.claude/`. Switching p
 ```
 
 > **Note**: Always close Claude Code before switching profiles. The tool will abort with an error if it detects Claude is running.
+
+## Commands Reference
+
+| Command | Arguments | What it does | Notes |
+|---|---|---|---|
+| `init` | — | Creates the profile store, snapshots current `~/.claude` as your first profile | Run once. |
+| `list` | — | Lists all profiles; marks active with `*`, unsaved changes with `(dirty)` | |
+| `status` | — | Shows active profile name, clean/dirty state, and backup remote | |
+| `switch` | `<name>` | Switches to the named profile | Aborts if Claude is running. Prompts save/discard/cancel for unsaved changes. |
+| `create_fresh` | `<name>` | Creates a new blank profile from the built-in default template | Does not switch automatically. |
+| `duplicate` | `<name>` | Clones the current profile into a new named profile and switches to it | Prompts to carry over or discard unsaved changes. |
+| `delete` | `<name>` | Permanently deletes a profile | Cannot delete the active profile or `default`. |
+| `backup` | — | Creates a timestamped `.zip` of all profiles in your home directory | Non-destructive; does not modify the store. |
+| `push` | — | Rsyncs the profiles store to the configured remote path | Requires `backup_remote` in `config.toml`. |
