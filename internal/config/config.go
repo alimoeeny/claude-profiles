@@ -11,7 +11,9 @@ import (
 const filename = "config.toml"
 
 type Config struct {
+	Current      string `toml:"current"`
 	BackupRemote string `toml:"backup_remote"`
+	SnapshotHash string `toml:"snapshot_hash"`
 }
 
 // Load reads config.toml from repoDir. Returns empty config if file doesn't exist.

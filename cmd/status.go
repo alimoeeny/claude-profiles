@@ -2,9 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/ali/claude-profile-switcher/internal/config"
-	"github.com/ali/claude-profile-switcher/internal/git"
+	"github.com/ali/claude-profile-switcher/internal/profile"
 	"github.com/spf13/cobra"
 )
 
@@ -19,30 +20,29 @@ func init() {
 }
 
 func runStatus(cmd *cobra.Command, args []string) error {
-	repoDir, err := requireRepo()
+	storeDir, err := requireStore()
 	if err != nil {
 		return err
 	}
 
-	current, err := git.CurrentBranch(repoDir)
+	cfg, err := config.Load(storeDir)
 	if err != nil {
 		return err
 	}
 
-	dirty, err := git.IsDirty(repoDir)
+	home, err := os.UserHomeDir()
 	if err != nil {
 		return err
 	}
 
-	cfg, err := config.Load(repoDir)
+	dirty, err := profile.IsDirty(home, cfg.SnapshotHash)
 	if err != nil {
 		return err
 	}
 
 	state := "clean"
 	if dirty {
-		stat, _ := git.DiffStat(repoDir)
-		state = fmt.Sprintf("dirty\n%s", stat)
+		state = "dirty (unsaved changes)"
 	}
 
 	remote := cfg.BackupRemote
@@ -50,6 +50,6 @@ func runStatus(cmd *cobra.Command, args []string) error {
 		remote = "(not configured)"
 	}
 
-	fmt.Printf("Profile: %s\nState:   %s\nRemote:  %s\n", current, state, remote)
+	fmt.Printf("Profile: %s\nState:   %s\nRemote:  %s\n", cfg.Current, state, remote)
 	return nil
 }

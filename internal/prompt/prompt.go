@@ -7,26 +7,31 @@ import (
 	"io"
 	"os"
 	"strings"
-	"time"
 
-	"github.com/ali/claude-profile-switcher/internal/git"
+	"github.com/ali/claude-profile-switcher/internal/config"
+	"github.com/ali/claude-profile-switcher/internal/profile"
 )
 
-// DirtyAction is what the user chose to do with uncommitted changes.
+// DirtyAction is what the user chose to do with unsaved changes.
 type DirtyAction int
 
 const (
-	ActionSave      DirtyAction = iota // commit changes to current branch
-	ActionDiscard                      // throw away changes
-	ActionCarryOver                    // carry changes to new branch (duplicate only)
+	ActionSave      DirtyAction = iota // snapshot current home to current profile
+	ActionDiscard                      // restore home from current profile zip
+	ActionCarryOver                    // carry current home state to new profile (duplicate only)
 	ActionCancel                       // abort the operation
 )
 
-// HandleDirty checks for uncommitted changes and prompts the user if dirty.
+// HandleDirty checks for unsaved changes and prompts the user if dirty.
 // allowCarryOver adds a [C]arry over option (used by duplicate).
 // Returns ActionSave (clean or saved), ActionDiscard, ActionCarryOver, or ActionCancel.
-func HandleDirty(repoDir string, allowCarryOver bool) (DirtyAction, error) {
-	dirty, err := git.IsDirty(repoDir)
+func HandleDirty(homeDir, storeDir, currentProfile string, allowCarryOver bool) (DirtyAction, error) {
+	cfg, err := config.Load(storeDir)
+	if err != nil {
+		return ActionCancel, err
+	}
+
+	dirty, err := profile.IsDirty(homeDir, cfg.SnapshotHash)
 	if err != nil {
 		return ActionCancel, err
 	}
@@ -34,16 +39,11 @@ func HandleDirty(repoDir string, allowCarryOver bool) (DirtyAction, error) {
 		return ActionSave, nil
 	}
 
-	stat, err := git.DiffStat(repoDir)
-	if err != nil {
-		return ActionCancel, err
-	}
-	fmt.Println("Uncommitted changes in current profile:")
-	fmt.Println(stat)
+	fmt.Println("Current profile has unsaved changes.")
 
 	var promptText string
 	if allowCarryOver {
-		promptText = "  [S]ave to current branch / [C]arry over to new branch / [A]bort: "
+		promptText = "  [S]ave to current profile / [C]arry over to new profile / [A]bort: "
 	} else {
 		promptText = "  [S]ave / [D]iscard / [C]ancel: "
 	}
@@ -57,7 +57,10 @@ func HandleDirty(repoDir string, allowCarryOver bool) (DirtyAction, error) {
 		if allowCarryOver {
 			switch choice {
 			case "s":
-				if err := git.CommitAll(repoDir, autoSaveMessage()); err != nil {
+				if err := profile.Snapshot(homeDir, storeDir, currentProfile); err != nil {
+					return ActionCancel, err
+				}
+				if err := UpdateSnapshotHash(homeDir, storeDir); err != nil {
 					return ActionCancel, err
 				}
 				return ActionSave, nil
@@ -69,12 +72,18 @@ func HandleDirty(repoDir string, allowCarryOver bool) (DirtyAction, error) {
 		} else {
 			switch choice {
 			case "s":
-				if err := git.CommitAll(repoDir, autoSaveMessage()); err != nil {
+				if err := profile.Snapshot(homeDir, storeDir, currentProfile); err != nil {
+					return ActionCancel, err
+				}
+				if err := UpdateSnapshotHash(homeDir, storeDir); err != nil {
 					return ActionCancel, err
 				}
 				return ActionSave, nil
 			case "d":
-				if err := git.Discard(repoDir); err != nil {
+				if err := profile.Restore(storeDir, homeDir, currentProfile); err != nil {
+					return ActionCancel, err
+				}
+				if err := UpdateSnapshotHash(homeDir, storeDir); err != nil {
 					return ActionCancel, err
 				}
 				return ActionDiscard, nil
@@ -86,8 +95,18 @@ func HandleDirty(repoDir string, allowCarryOver bool) (DirtyAction, error) {
 	}
 }
 
-func autoSaveMessage() string {
-	return "auto-save: " + time.Now().Format("2006-01-02 15:04")
+// UpdateSnapshotHash recomputes the home hash and persists it to config.
+func UpdateSnapshotHash(homeDir, storeDir string) error {
+	hash, err := profile.HashHome(homeDir)
+	if err != nil {
+		return err
+	}
+	cfg, err := config.Load(storeDir)
+	if err != nil {
+		return err
+	}
+	cfg.SnapshotHash = hash
+	return config.Save(storeDir, cfg)
 }
 
 // Ask prints a prompt and reads a single line of input.

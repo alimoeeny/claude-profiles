@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/ali/claude-profile-switcher/internal/claude"
-	"github.com/ali/claude-profile-switcher/internal/git"
+	"github.com/ali/claude-profile-switcher/internal/config"
 	"github.com/ali/claude-profile-switcher/internal/profile"
 	"github.com/ali/claude-profile-switcher/internal/prompt"
 	"github.com/spf13/cobra"
@@ -13,7 +13,7 @@ import (
 
 var createFreshCmd = &cobra.Command{
 	Use:   "create_fresh <name>",
-	Short: "Create a new profile from the default branch",
+	Short: "Create a new profile from the default template",
 	Args:  cobra.ExactArgs(1),
 	RunE:  runCreateFresh,
 }
@@ -25,7 +25,7 @@ func init() {
 func runCreateFresh(cmd *cobra.Command, args []string) error {
 	name := args[0]
 
-	repoDir, err := requireRepo()
+	storeDir, err := requireStore()
 	if err != nil {
 		return err
 	}
@@ -38,15 +38,25 @@ func runCreateFresh(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("Claude is running — close it before creating a new profile")
 	}
 
-	if git.BranchExists(repoDir, name) {
+	if profile.ProfileExists(storeDir, name) {
 		return fmt.Errorf("profile %q already exists", name)
 	}
 
-	if !git.BranchExists(repoDir, "default") {
-		return fmt.Errorf("'default' branch not found — was this repo initialised with 'claude-profiles init'?")
+	if !profile.ProfileExists(storeDir, "default") {
+		return fmt.Errorf("'default' profile not found — was this store initialised with 'claude-profiles init'?")
 	}
 
-	action, err := prompt.HandleDirty(repoDir, false)
+	cfg, err := config.Load(storeDir)
+	if err != nil {
+		return err
+	}
+
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+
+	action, err := prompt.HandleDirty(home, storeDir, cfg.Current, false)
 	if err != nil {
 		return err
 	}
@@ -55,15 +65,21 @@ func runCreateFresh(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	if err := git.CreateBranchFrom(repoDir, name, "default"); err != nil {
+	if err := profile.DuplicateProfile(storeDir, "default", name); err != nil {
 		return err
 	}
 
-	home, err := os.UserHomeDir()
+	if err := profile.Restore(storeDir, home, name); err != nil {
+		return err
+	}
+
+	hash, err := profile.HashHome(home)
 	if err != nil {
 		return err
 	}
-	if err := profile.Restore(repoDir, home); err != nil {
+	cfg.Current = name
+	cfg.SnapshotHash = hash
+	if err := config.Save(storeDir, cfg); err != nil {
 		return err
 	}
 

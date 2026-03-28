@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
-	"github.com/ali/claude-profile-switcher/internal/git"
 	"github.com/ali/claude-profile-switcher/internal/repopath"
 	"github.com/spf13/cobra"
 )
@@ -21,14 +21,14 @@ func Execute() {
 	}
 }
 
-// requireRepo returns the repo path and errors if it's not initialised.
-func requireRepo() (string, error) {
+// requireStore returns the store path and errors if it has not been initialised.
+func requireStore() (string, error) {
 	dir, err := repopath.Resolve()
 	if err != nil {
 		return "", err
 	}
-	if !git.IsRepo(dir) {
-		return "", fmt.Errorf("no profiles repo found at %s — run 'claude-profiles init' to get started", dir)
+	if _, err := os.Stat(filepath.Join(dir, "config.toml")); os.IsNotExist(err) {
+		return "", fmt.Errorf("no profiles store found at %s — run 'claude-profiles init' to get started", dir)
 	}
 	return dir, nil
 }

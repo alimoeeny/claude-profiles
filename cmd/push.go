@@ -2,16 +2,17 @@ package cmd
 
 import (
 	"fmt"
+	"os/exec"
+	"path/filepath"
 
 	"github.com/ali/claude-profile-switcher/internal/config"
-	"github.com/ali/claude-profile-switcher/internal/git"
 	"github.com/ali/claude-profile-switcher/internal/prompt"
 	"github.com/spf13/cobra"
 )
 
 var pushCmd = &cobra.Command{
 	Use:   "push",
-	Short: "Push all profiles to the configured git remote",
+	Short: "Sync all profiles to the configured remote path via rsync",
 	RunE:  runPush,
 }
 
@@ -20,56 +21,41 @@ func init() {
 }
 
 func runPush(cmd *cobra.Command, args []string) error {
-	repoDir, err := requireRepo()
+	storeDir, err := requireStore()
 	if err != nil {
 		return err
 	}
 
-	cfg, err := config.Load(repoDir)
+	cfg, err := config.Load(storeDir)
 	if err != nil {
 		return err
 	}
 
 	if cfg.BackupRemote == "" {
-		url, err := prompt.Ask("No remote configured. Enter remote URL (or press Enter to skip): ")
+		dest, err := prompt.Ask("No remote configured. Enter rsync destination (or press Enter to skip): ")
 		if err != nil {
 			return err
 		}
-		if url == "" {
-			fmt.Println("To configure a remote manually:")
-			fmt.Printf("  git -C %s remote add origin <url>\n", repoDir)
-			fmt.Println("Then re-run: claude-profiles push")
+		if dest == "" {
+			fmt.Println("To configure a remote, re-run with a destination path (e.g. user@host:/backups/claude-profiles/).")
 			return nil
 		}
-		cfg.BackupRemote = url
-		if err := config.Save(repoDir, cfg); err != nil {
+		cfg.BackupRemote = dest
+		if err := config.Save(storeDir, cfg); err != nil {
 			return err
 		}
-		if err := git.AddRemote(repoDir, "origin", url); err != nil {
-			return err
-		}
-		// Commit the updated config — ignore error if nothing changed
-		_ = git.CommitAll(repoDir, "chore: add backup remote to config")
 	}
 
-	action, err := prompt.HandleDirty(repoDir, false)
+	// rsync the profiles/ directory to the remote destination
+	profilesDir := filepath.Join(storeDir, "profiles") + string(filepath.Separator)
+	out, err := exec.Command("rsync", "-a", profilesDir, cfg.BackupRemote).CombinedOutput()
 	if err != nil {
-		return err
+		return fmt.Errorf("rsync failed: %w\n%s", err, out)
 	}
-	if action == prompt.ActionCancel {
-		fmt.Println("Cancelled.")
-		return nil
-	}
-
-	out, err := git.PushAll(repoDir, "origin")
-	if err != nil {
-		return err
-	}
-	if out != "" {
-		fmt.Println(out)
+	if len(out) > 0 {
+		fmt.Print(string(out))
 	}
 
-	branches, _ := git.ListBranches(repoDir)
-	fmt.Printf("Pushed %d profiles to %s\n", len(branches), cfg.BackupRemote)
+	fmt.Printf("Profiles synced to %s\n", cfg.BackupRemote)
 	return nil
 }

@@ -6,7 +6,6 @@ import (
 
 	"github.com/ali/claude-profile-switcher/internal/claude"
 	"github.com/ali/claude-profile-switcher/internal/config"
-	"github.com/ali/claude-profile-switcher/internal/git"
 	"github.com/ali/claude-profile-switcher/internal/profile"
 	"github.com/ali/claude-profile-switcher/internal/prompt"
 	"github.com/spf13/cobra"
@@ -26,7 +25,7 @@ func init() {
 func runDuplicate(cmd *cobra.Command, args []string) error {
 	name := args[0]
 
-	repoDir, err := requireRepo()
+	storeDir, err := requireStore()
 	if err != nil {
 		return err
 	}
@@ -39,11 +38,21 @@ func runDuplicate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("Claude is running — close it before duplicating profiles")
 	}
 
-	if git.BranchExists(repoDir, name) {
+	if profile.ProfileExists(storeDir, name) {
 		return fmt.Errorf("profile %q already exists", name)
 	}
 
-	action, err := prompt.HandleDirty(repoDir, true)
+	cfg, err := config.Load(storeDir)
+	if err != nil {
+		return err
+	}
+
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+
+	action, err := prompt.HandleDirty(home, storeDir, cfg.Current, true)
 	if err != nil {
 		return err
 	}
@@ -52,26 +61,27 @@ func runDuplicate(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	if err := git.CreateBranch(repoDir, name); err != nil {
-		return err
+	switch action {
+	case prompt.ActionCarryOver:
+		// Snapshot current home state directly as the new profile
+		if err := profile.Snapshot(home, storeDir, name); err != nil {
+			return err
+		}
+	default:
+		// Copy the saved zip (Save already updated it; Discard uses last clean state)
+		if err := profile.DuplicateProfile(storeDir, cfg.Current, name); err != nil {
+			return err
+		}
 	}
 
-	// If carrying over, snapshot the current home state and commit on the new branch
-	if action == prompt.ActionCarryOver {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			return err
-		}
-		if err := profile.Snapshot(home, repoDir); err != nil {
-			return err
-		}
-		cfg, _ := config.Load(repoDir)
-		if err := config.Save(repoDir, cfg); err != nil {
-			return err
-		}
-		if err := git.CommitAll(repoDir, "duplicate: carry over changes from previous profile"); err != nil {
-			return err
-		}
+	hash, err := profile.HashHome(home)
+	if err != nil {
+		return err
+	}
+	cfg.Current = name
+	cfg.SnapshotHash = hash
+	if err := config.Save(storeDir, cfg); err != nil {
+		return err
 	}
 
 	fmt.Printf("Created and switched to profile %q\n", name)

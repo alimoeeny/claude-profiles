@@ -3,7 +3,8 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/ali/claude-profile-switcher/internal/git"
+	"github.com/ali/claude-profile-switcher/internal/config"
+	"github.com/ali/claude-profile-switcher/internal/profile"
 	"github.com/ali/claude-profile-switcher/internal/prompt"
 	"github.com/spf13/cobra"
 )
@@ -22,7 +23,7 @@ func init() {
 func runDelete(cmd *cobra.Command, args []string) error {
 	target := args[0]
 
-	repoDir, err := requireRepo()
+	storeDir, err := requireStore()
 	if err != nil {
 		return err
 	}
@@ -31,15 +32,15 @@ func runDelete(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("cannot delete 'default' — it is the base for create_fresh")
 	}
 
-	current, err := git.CurrentBranch(repoDir)
+	cfg, err := config.Load(storeDir)
 	if err != nil {
 		return err
 	}
-	if current == target {
+	if cfg.Current == target {
 		return fmt.Errorf("cannot delete active profile — switch to another profile first")
 	}
 
-	if !git.BranchExists(repoDir, target) {
+	if !profile.ProfileExists(storeDir, target) {
 		return fmt.Errorf("profile %q not found", target)
 	}
 
@@ -52,7 +53,7 @@ func runDelete(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	if err := git.DeleteBranch(repoDir, target); err != nil {
+	if err := profile.DeleteProfile(storeDir, target); err != nil {
 		return err
 	}
 

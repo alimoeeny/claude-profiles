@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/ali/claude-profile-switcher/internal/claude"
-	"github.com/ali/claude-profile-switcher/internal/git"
+	"github.com/ali/claude-profile-switcher/internal/config"
 	"github.com/ali/claude-profile-switcher/internal/profile"
 	"github.com/ali/claude-profile-switcher/internal/prompt"
 	"github.com/spf13/cobra"
@@ -25,7 +25,7 @@ func init() {
 func runSwitch(cmd *cobra.Command, args []string) error {
 	target := args[0]
 
-	repoDir, err := requireRepo()
+	storeDir, err := requireStore()
 	if err != nil {
 		return err
 	}
@@ -38,20 +38,25 @@ func runSwitch(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("Claude is running — close it before switching profiles")
 	}
 
-	if !git.BranchExists(repoDir, target) {
+	if !profile.ProfileExists(storeDir, target) {
 		return fmt.Errorf("profile %q not found — run 'claude-profiles list' to see available profiles", target)
 	}
 
-	current, err := git.CurrentBranch(repoDir)
+	cfg, err := config.Load(storeDir)
 	if err != nil {
 		return err
 	}
-	if current == target {
+	if cfg.Current == target {
 		fmt.Printf("Already on profile %q\n", target)
 		return nil
 	}
 
-	action, err := prompt.HandleDirty(repoDir, false)
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+
+	action, err := prompt.HandleDirty(home, storeDir, cfg.Current, false)
 	if err != nil {
 		return err
 	}
@@ -60,15 +65,17 @@ func runSwitch(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	if err := git.Checkout(repoDir, target); err != nil {
+	if err := profile.Restore(storeDir, home, target); err != nil {
 		return err
 	}
 
-	home, err := os.UserHomeDir()
+	hash, err := profile.HashHome(home)
 	if err != nil {
 		return err
 	}
-	if err := profile.Restore(repoDir, home); err != nil {
+	cfg.Current = target
+	cfg.SnapshotHash = hash
+	if err := config.Save(storeDir, cfg); err != nil {
 		return err
 	}
 

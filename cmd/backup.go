@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/ali/claude-profile-switcher/internal/prompt"
 	"github.com/spf13/cobra"
 )
 
@@ -24,18 +23,9 @@ func init() {
 }
 
 func runBackup(cmd *cobra.Command, args []string) error {
-	repoDir, err := requireRepo()
+	storeDir, err := requireStore()
 	if err != nil {
 		return err
-	}
-
-	action, err := prompt.HandleDirty(repoDir, false)
-	if err != nil {
-		return err
-	}
-	if action == prompt.ActionCancel {
-		fmt.Println("Cancelled.")
-		return nil
 	}
 
 	home, err := os.UserHomeDir()
@@ -46,7 +36,7 @@ func runBackup(cmd *cobra.Command, args []string) error {
 	timestamp := time.Now().Format("2006-01-02-1504")
 	zipPath := filepath.Join(home, fmt.Sprintf(".claude-profiles-backup-%s.zip", timestamp))
 
-	if err := zipDir(repoDir, zipPath); err != nil {
+	if err := zipDir(storeDir, zipPath); err != nil {
 		return fmt.Errorf("backup failed: %w", err)
 	}
 

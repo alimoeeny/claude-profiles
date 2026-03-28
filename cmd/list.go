@@ -2,8 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
-	"github.com/ali/claude-profile-switcher/internal/git"
+	"github.com/ali/claude-profile-switcher/internal/config"
+	"github.com/ali/claude-profile-switcher/internal/profile"
 	"github.com/spf13/cobra"
 )
 
@@ -18,35 +20,40 @@ func init() {
 }
 
 func runList(cmd *cobra.Command, args []string) error {
-	repoDir, err := requireRepo()
+	storeDir, err := requireStore()
 	if err != nil {
 		return err
 	}
 
-	current, err := git.CurrentBranch(repoDir)
+	cfg, err := config.Load(storeDir)
 	if err != nil {
 		return err
 	}
 
-	branches, err := git.ListBranches(repoDir)
+	names, err := profile.ListProfiles(storeDir)
 	if err != nil {
 		return err
 	}
 
-	dirty, err := git.IsDirty(repoDir)
+	home, err := os.UserHomeDir()
 	if err != nil {
 		return err
 	}
 
-	for _, b := range branches {
-		if b == current {
+	dirty, err := profile.IsDirty(home, cfg.SnapshotHash)
+	if err != nil {
+		return err
+	}
+
+	for _, name := range names {
+		if name == cfg.Current {
 			suffix := ""
 			if dirty {
 				suffix = " (dirty)"
 			}
-			fmt.Printf("* %s%s\n", b, suffix)
+			fmt.Printf("* %s%s\n", name, suffix)
 		} else {
-			fmt.Printf("  %s\n", b)
+			fmt.Printf("  %s\n", name)
 		}
 	}
 	return nil
