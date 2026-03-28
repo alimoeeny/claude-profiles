@@ -7,11 +7,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/alimoeeny/claude-profile-manager/assets"
-	"github.com/alimoeeny/claude-profile-manager/internal/config"
-	"github.com/alimoeeny/claude-profile-manager/internal/profile"
-	"github.com/alimoeeny/claude-profile-manager/internal/prompt"
-	"github.com/alimoeeny/claude-profile-manager/internal/repopath"
+	"github.com/alimoeeny/claude-profiles/assets"
+	"github.com/alimoeeny/claude-profiles/internal/config"
+	"github.com/alimoeeny/claude-profiles/internal/profile"
+	"github.com/alimoeeny/claude-profiles/internal/prompt"
+	"github.com/alimoeeny/claude-profiles/internal/repopath"
 	"github.com/spf13/cobra"
 )
 

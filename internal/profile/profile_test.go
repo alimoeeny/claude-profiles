@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/alimoeeny/claude-profile-manager/internal/profile"
+	"github.com/alimoeeny/claude-profiles/internal/profile"
 )
 
 func makeHome(t *testing.T) string {

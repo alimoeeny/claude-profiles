@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/alimoeeny/claude-profile-manager/internal/config"
+	"github.com/alimoeeny/claude-profiles/internal/config"
 )
 
 func TestLoadDefaults(t *testing.T) {

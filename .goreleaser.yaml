@@ -1,6 +1,6 @@
 version: 2
 
-project_name: claude-profile-manager
+project_name: claude-profiles
 
 before:
   hooks:
@@ -20,7 +20,7 @@ builds:
       - CGO_ENABLED=0
     ldflags:
       - -s -w
-      - -X github.com/alimoeeny/claude-profile-manager/cmd.Version={{.Version}}
+      - -X github.com/alimoeeny/claude-profiles/cmd.Version={{.Version}}
 
 archives:
   - id: default
@@ -38,7 +38,7 @@ checksum:
 release:
   github:
     owner: alimoeeny
-    name: claude-profile-manager
+    name: claude-profiles
   draft: false
   prerelease: auto
 

@@ -1,4 +1,4 @@
-module github.com/alimoeeny/claude-profile-manager
+module github.com/alimoeeny/claude-profiles
 
 go 1.25.0
 

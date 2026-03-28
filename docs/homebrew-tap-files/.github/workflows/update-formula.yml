@@ -25,10 +25,10 @@ jobs:
         id: sha
         run: |
           TAG="${{ steps.meta.outputs.tag }}"
-          BASE="https://github.com/alimoeeny/claude-profile-manager/releases/download/${TAG}"
+          BASE="https://github.com/alimoeeny/claude-profiles/releases/download/${TAG}"
 
-          curl -fsSL "${BASE}/claude-profile-manager_Darwin_arm64.tar.gz" -o arm64.tar.gz
-          curl -fsSL "${BASE}/claude-profile-manager_Darwin_amd64.tar.gz" -o amd64.tar.gz
+          curl -fsSL "${BASE}/claude-profiles_Darwin_arm64.tar.gz" -o arm64.tar.gz
+          curl -fsSL "${BASE}/claude-profiles_Darwin_amd64.tar.gz" -o amd64.tar.gz
 
           echo "arm64=$(sha256sum arm64.tar.gz | awk '{print $1}')" >> "$GITHUB_OUTPUT"
           echo "amd64=$(sha256sum amd64.tar.gz | awk '{print $1}')" >> "$GITHUB_OUTPUT"
@@ -38,7 +38,7 @@ jobs:
           VERSION="${{ steps.meta.outputs.version }}"
           ARM64="${{ steps.sha.outputs.arm64 }}"
           AMD64="${{ steps.sha.outputs.amd64 }}"
-          FORMULA="Formula/claude-profile-manager.rb"
+          FORMULA="Formula/claude-profiles.rb"
 
           python3 - <<EOF
           import re
@@ -73,6 +73,6 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add Formula/claude-profile-manager.rb
+          git add Formula/claude-profiles.rb
           git commit -m "chore: update formula to v${{ steps.meta.outputs.version }}"
           git push

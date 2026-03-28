@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/alimoeeny/claude-profile-manager/internal/repopath"
+	"github.com/alimoeeny/claude-profiles/internal/repopath"
 	"github.com/spf13/cobra"
 )
 

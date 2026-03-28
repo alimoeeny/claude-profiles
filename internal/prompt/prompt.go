@@ -8,8 +8,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/alimoeeny/claude-profile-manager/internal/config"
-	"github.com/alimoeeny/claude-profile-manager/internal/profile"
+	"github.com/alimoeeny/claude-profiles/internal/config"
+	"github.com/alimoeeny/claude-profiles/internal/profile"
 )
 
 // DirtyAction is what the user chose to do with unsaved changes.

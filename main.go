@@ -1,6 +1,6 @@
 package main
 
-import "github.com/alimoeeny/claude-profile-manager/cmd"
+import "github.com/alimoeeny/claude-profiles/cmd"
 
 func main() {
 	cmd.Execute()

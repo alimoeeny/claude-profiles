@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/alimoeeny/claude-profile-manager/internal/config"
-	"github.com/alimoeeny/claude-profile-manager/internal/profile"
+	"github.com/alimoeeny/claude-profiles/internal/config"
+	"github.com/alimoeeny/claude-profiles/internal/profile"
 	"github.com/spf13/cobra"
 )
 

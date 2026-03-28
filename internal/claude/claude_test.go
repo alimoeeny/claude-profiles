@@ -3,7 +3,7 @@ package claude_test
 import (
 	"testing"
 
-	"github.com/alimoeeny/claude-profile-manager/internal/claude"
+	"github.com/alimoeeny/claude-profiles/internal/claude"
 )
 
 func TestIsRunning_ReturnsBool(t *testing.T) {

@@ -32,14 +32,18 @@ $ claude-profiles list
 
 ## Installation
 
+### Homebrew (recommended)
+
 ```bash
-go install github.com/alimoeeny/claude-profile-manager@latest
+brew install alimoeeny/tap/claude-profiles
 ```
 
-Verify it worked:
+### Go install
+
+If you have Go installed:
 
 ```bash
-claude-profiles --help
+go install github.com/alimoeeny/claude-profiles@latest
 ```
 
 > **Note**: Requires Go 1.21 or later. Install Go at [go.dev/dl](https://go.dev/dl).
@@ -51,6 +55,12 @@ export PATH="$PATH:$(go env GOPATH)/bin"
 ```
 
 Add that line to your `~/.zshrc` or `~/.bashrc` to make it permanent.
+
+### Verify
+
+```bash
+claude-profiles --help
+```
 
 ## Quick Start
 
@@ -184,7 +194,7 @@ go test ./internal/profile/... -v  # run a single package
 
 One architectural rule to keep in mind: every command that touches `~/.claude/` must follow this exact sequence — check Claude is not running, handle dirty state (save/discard/cancel), then restore the profile. Breaking this order can leave the user's config in an inconsistent state.
 
-Issues and Human-crafted PRs are welcome at [github.com/alimoeeny/claude-profile-manager](https://github.com/alimoeeny/claude-profile-manager).
+Issues and Human-crafted PRs are welcome at [github.com/alimoeeny/claude-profiles](https://github.com/alimoeeny/claude-profiles).
 
 Of courese it is perfectly okay to use AI to help you develop your code, but please make sure to review it and understand it before submitting it as a PR. and explain your changes in the PR description.
 
