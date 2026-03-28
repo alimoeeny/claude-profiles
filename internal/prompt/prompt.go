@@ -8,8 +8,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ali/claude-profile-switcher/internal/config"
-	"github.com/ali/claude-profile-switcher/internal/profile"
+	"github.com/ali/claude-profile-manager/internal/config"
+	"github.com/ali/claude-profile-manager/internal/profile"
 )
 
 // DirtyAction is what the user chose to do with unsaved changes.

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ali/claude-profile-switcher/internal/config"
-	"github.com/ali/claude-profile-switcher/internal/profile"
+	"github.com/ali/claude-profile-manager/internal/config"
+	"github.com/ali/claude-profile-manager/internal/profile"
 	"github.com/spf13/cobra"
 )
 

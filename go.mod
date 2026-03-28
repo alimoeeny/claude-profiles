@@ -1,4 +1,4 @@
-module github.com/alimoeeny/claude-profile-switcher
+module github.com/alimoeeny/claude-profile-manager
 
 go 1.25.0
 

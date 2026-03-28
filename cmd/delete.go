@@ -3,9 +3,9 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/ali/claude-profile-switcher/internal/config"
-	"github.com/ali/claude-profile-switcher/internal/profile"
-	"github.com/ali/claude-profile-switcher/internal/prompt"
+	"github.com/ali/claude-profile-manager/internal/config"
+	"github.com/ali/claude-profile-manager/internal/profile"
+	"github.com/ali/claude-profile-manager/internal/prompt"
 	"github.com/spf13/cobra"
 )
 

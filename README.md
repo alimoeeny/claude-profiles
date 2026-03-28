@@ -33,7 +33,7 @@ $ claude-profiles list
 ## Installation
 
 ```bash
-go install github.com/alimoeeny/claude-profile-switcher@latest
+go install github.com/alimoeeny/claude-profile-manager@latest
 ```
 
 Verify it worked:

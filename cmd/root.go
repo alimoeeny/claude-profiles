@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ali/claude-profile-switcher/internal/repopath"
+	"github.com/ali/claude-profile-manager/internal/repopath"
 	"github.com/spf13/cobra"
 )
 
