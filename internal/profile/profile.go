@@ -67,11 +67,15 @@ func Restore(storeDir, homeDir, name string) error {
 	}
 	defer r.Close()
 
+	cleanHome := filepath.Clean(homeDir)
 	for _, f := range r.File {
 		if f.FileInfo().IsDir() {
 			continue
 		}
-		target := filepath.Join(homeDir, f.Name)
+		target := filepath.Join(cleanHome, f.Name)
+		if !strings.HasPrefix(filepath.Clean(target)+string(os.PathSeparator), cleanHome+string(os.PathSeparator)) {
+			return fmt.Errorf("restore: unsafe path in zip: %s", f.Name)
+		}
 		if err := extractFile(f, target); err != nil {
 			return fmt.Errorf("restore %s: %w", f.Name, err)
 		}
