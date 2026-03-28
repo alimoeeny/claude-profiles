@@ -91,3 +91,21 @@ claude-profiles switch main
 ```
 
 ---
+
+## How It Works
+
+Each profile is a zip snapshot of `~/.claude.json` and `~/.claude/`. Switching profiles replaces those files entirely — it is not a merge. The tool refuses to switch if Claude is currently running, preventing any risk of corruption.
+
+```
+~/.claude-profiles/
+├── config.toml          ← tracks active profile + optional backup remote
+└── profiles/
+    ├── default.zip      ← built-in minimal config (seed for create_fresh)
+    ├── main.zip         ← snapshot of ~/.claude.json + ~/.claude/
+    └── work.zip
+
+~/.claude/               ← fully replaced on every switch
+~/.claude.json           ← fully replaced on every switch
+```
+
+> **Note**: Always close Claude Code before switching profiles. The tool will abort with an error if it detects Claude is running.
