@@ -123,3 +123,17 @@ Each profile is a zip snapshot of `~/.claude.json` and `~/.claude/`. Switching p
 | `delete` | `<name>` | Permanently deletes a profile | Cannot delete the active profile or `default`. |
 | `backup` | — | Creates a timestamped `.zip` of all profiles in your home directory | Non-destructive; does not modify the store. |
 | `push` | — | Rsyncs the profiles store to the configured remote path | Requires `backup_remote` in `config.toml`. |
+
+## Configuration
+
+The store is configured via `~/.claude-profiles/config.toml`, created automatically by `init`. You can edit it directly at any time.
+
+```toml
+# ~/.claude-profiles/config.toml
+
+current       = "work"                              # active profile (managed by the tool)
+snapshot_hash = "abc123..."                         # change-detection hash (managed by the tool)
+backup_remote = "user@host:/backups/claude-profiles" # rsync destination for `push` (optional)
+```
+
+The only field you'd typically set manually is `backup_remote`. You can also configure it interactively during `init` or when running `push` for the first time with no remote set.
