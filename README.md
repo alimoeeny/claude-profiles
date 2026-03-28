@@ -43,3 +43,11 @@ claude-profiles --help
 ```
 
 > **Note**: Requires Go 1.21 or later. Install Go at [go.dev/dl](https://go.dev/dl).
+
+If `claude-profiles` is not found after installing, make sure your Go bin directory is on your `PATH`:
+
+```bash
+export PATH="$PATH:$(go env GOPATH)/bin"
+```
+
+Add that line to your `~/.zshrc` or `~/.bashrc` to make it permanent.
