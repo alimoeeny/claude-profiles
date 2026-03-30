@@ -18,9 +18,11 @@ var stdin io.Reader = os.Stdin
 var Version = "dev"
 
 var rootCmd = &cobra.Command{
-	Use:     "claude-profiles",
-	Short:   "Manage multiple Claude Code profiles",
-	Version: Version,
+	Use:          "claude-profiles",
+	Short:        "Manage multiple Claude Code profiles",
+	Version:      Version,
+	SilenceUsage: true,
+	RunE:         runList,
 }
 
 func Execute() {
