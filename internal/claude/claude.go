@@ -1,8 +1,12 @@
 package claude
 
 import (
+	"errors"
 	"os/exec"
 )
+
+// ErrRunning is returned by commands when Claude is detected as running.
+var ErrRunning = errors.New("claude is running")
 
 // RunPgrep is the function used to check for a running process by name.
 // It can be replaced in tests to avoid calling the real pgrep binary.
