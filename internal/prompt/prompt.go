@@ -100,9 +100,10 @@ func HandleDirty(r io.Reader, homeDir, storeDir, currentProfile string, allowCar
 	}
 }
 
-// showDiff prints a compact summary of changes between live home and the named profile snapshot.
-// Errors are printed rather than returned; the caller always re-prompts.
+// showDiff prints a depth-2 grouped summary of changes between live home and the named profile
+// snapshot. Errors are printed rather than returned; the caller always re-prompts.
 func showDiff(homeDir, storeDir, currentProfile string) {
+	const depth = 2
 	result, err := profile.DiffSnapshot(homeDir, storeDir, currentProfile)
 	if err != nil {
 		fmt.Printf("  diff unavailable: %v\n", err)
@@ -113,18 +114,44 @@ func showDiff(homeDir, storeDir, currentProfile string) {
 		fmt.Println("  No changes found.")
 		return
 	}
-	for _, e := range result.Entries {
-		switch e.Status {
-		case profile.DiffAdded:
-			fmt.Printf("  + %s\n", e.Path)
-		case profile.DiffRemoved:
-			fmt.Printf("  - %s\n", e.Path)
-		case profile.DiffModified:
-			fmt.Printf("  ~ %s\n", e.Path)
-		}
-	}
 	fmt.Printf("  %d changed (%d added, %d removed, %d modified)\n",
 		changed, result.Added, result.Removed, result.Modified)
+
+	symbols := map[profile.DiffStatus]string{
+		profile.DiffAdded:    "+",
+		profile.DiffRemoved:  "-",
+		profile.DiffModified: "~",
+	}
+	for _, status := range []profile.DiffStatus{profile.DiffAdded, profile.DiffRemoved, profile.DiffModified} {
+		var order []string
+		counts := map[string]int{}
+		for _, e := range result.Entries {
+			if e.Status != status {
+				continue
+			}
+			key := truncateDiffPath(e.Path, depth)
+			if counts[key] == 0 {
+				order = append(order, key)
+			}
+			counts[key]++
+		}
+		for _, key := range order {
+			if counts[key] > 1 {
+				fmt.Printf("  %s %s (%d files)\n", symbols[status], key, counts[key])
+			} else {
+				fmt.Printf("  %s %s\n", symbols[status], key)
+			}
+		}
+	}
+}
+
+// truncateDiffPath limits a forward-slash path to depth components.
+func truncateDiffPath(path string, depth int) string {
+	parts := strings.Split(path, "/")
+	if len(parts) <= depth {
+		return path
+	}
+	return strings.Join(parts[:depth], "/")
 }
 
 // UpdateSnapshotHash recomputes the home hash and persists it to config.
