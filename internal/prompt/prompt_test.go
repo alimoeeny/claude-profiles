@@ -278,6 +278,73 @@ func TestHandleDirty_AllowCarryOver_Abort(t *testing.T) {
 	}
 }
 
+// --- HandleDirty ? (show diff) ---
+
+func TestHandleDirty_DiffThenSave(t *testing.T) {
+	homeDir, storeDir := setupDirtyState(t, "myprofile", `{"version":1}`, `{"version":2}`)
+
+	action, err := prompt.HandleDirty(strings.NewReader("?\ns\n"), homeDir, storeDir, "myprofile", false)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if action != prompt.ActionSave {
+		t.Fatalf("expected ActionSave after diff, got %v", action)
+	}
+}
+
+func TestHandleDirty_DiffThenDiscard(t *testing.T) {
+	homeDir, storeDir := setupDirtyState(t, "myprofile", `{"version":1}`, `{"version":2}`)
+
+	action, err := prompt.HandleDirty(strings.NewReader("?\nd\n"), homeDir, storeDir, "myprofile", false)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if action != prompt.ActionDiscard {
+		t.Fatalf("expected ActionDiscard after diff, got %v", action)
+	}
+}
+
+func TestHandleDirty_DiffThenCancel(t *testing.T) {
+	homeDir, storeDir := setupDirtyState(t, "myprofile", `{"version":1}`, `{"version":2}`)
+
+	action, err := prompt.HandleDirty(strings.NewReader("?\nc\n"), homeDir, storeDir, "myprofile", false)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if action != prompt.ActionCancel {
+		t.Fatalf("expected ActionCancel after diff, got %v", action)
+	}
+}
+
+func TestHandleDirty_AllowCarryOver_DiffThenCarryOver(t *testing.T) {
+	homeDir, storeDir := setupDirtyState(t, "myprofile", `{"version":1}`, `{"version":2}`)
+
+	action, err := prompt.HandleDirty(strings.NewReader("?\nc\n"), homeDir, storeDir, "myprofile", true)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if action != prompt.ActionCarryOver {
+		t.Fatalf("expected ActionCarryOver after diff, got %v", action)
+	}
+}
+
+func TestHandleDirty_DiffErrorContinues(t *testing.T) {
+	homeDir, storeDir := setupDirtyState(t, "myprofile", `{"version":1}`, `{"version":2}`)
+
+	// Remove the zip so DiffSnapshot fails; the loop must continue, not crash.
+	if err := os.Remove(filepath.Join(storeDir, "profiles", "myprofile.zip")); err != nil {
+		t.Fatalf("Remove zip: %v", err)
+	}
+
+	action, err := prompt.HandleDirty(strings.NewReader("?\nc\n"), homeDir, storeDir, "myprofile", false)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if action != prompt.ActionCancel {
+		t.Fatalf("expected ActionCancel after diff error, got %v", action)
+	}
+}
+
 // --- UpdateSnapshotHash ---
 
 func TestUpdateSnapshotHash(t *testing.T) {
