@@ -42,9 +42,9 @@ func HandleDirty(r io.Reader, homeDir, storeDir, currentProfile string, allowCar
 
 	var promptText string
 	if allowCarryOver {
-		promptText = "  [S]ave to current profile / [C]arry over to new profile / [A]bort: "
+		promptText = "  [S]ave to current profile / [C]arry over to new profile / [?]Diff / [A]bort: "
 	} else {
-		promptText = "  [S]ave / [D]iscard / [C]ancel: "
+		promptText = "  [S]ave / [D]iscard / [?]Diff / [C]ancel: "
 	}
 
 	reader := bufio.NewReader(r)
@@ -65,6 +65,8 @@ func HandleDirty(r io.Reader, homeDir, storeDir, currentProfile string, allowCar
 				return ActionSave, nil
 			case "c":
 				return ActionCarryOver, nil
+			case "?":
+				showDiff(homeDir, storeDir, currentProfile)
 			case "a":
 				return ActionCancel, nil
 			}
@@ -86,12 +88,43 @@ func HandleDirty(r io.Reader, homeDir, storeDir, currentProfile string, allowCar
 					return ActionCancel, err
 				}
 				return ActionDiscard, nil
+			case "?":
+				showDiff(homeDir, storeDir, currentProfile)
 			case "c":
 				return ActionCancel, nil
 			}
 		}
-		fmt.Println("  Invalid choice.")
+		if choice != "?" {
+			fmt.Println("  Invalid choice.")
+		}
 	}
+}
+
+// showDiff prints a compact summary of changes between live home and the named profile snapshot.
+// Errors are printed rather than returned; the caller always re-prompts.
+func showDiff(homeDir, storeDir, currentProfile string) {
+	result, err := profile.DiffSnapshot(homeDir, storeDir, currentProfile)
+	if err != nil {
+		fmt.Printf("  diff unavailable: %v\n", err)
+		return
+	}
+	changed := result.Added + result.Removed + result.Modified
+	if changed == 0 {
+		fmt.Println("  No changes found.")
+		return
+	}
+	for _, e := range result.Entries {
+		switch e.Status {
+		case profile.DiffAdded:
+			fmt.Printf("  + %s\n", e.Path)
+		case profile.DiffRemoved:
+			fmt.Printf("  - %s\n", e.Path)
+		case profile.DiffModified:
+			fmt.Printf("  ~ %s\n", e.Path)
+		}
+	}
+	fmt.Printf("  %d changed (%d added, %d removed, %d modified)\n",
+		changed, result.Added, result.Removed, result.Modified)
 }
 
 // UpdateSnapshotHash recomputes the home hash and persists it to config.
