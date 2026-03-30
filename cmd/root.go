@@ -1,12 +1,15 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 
+	"github.com/alimoeeny/claude-profiles/internal/claude"
 	"github.com/alimoeeny/claude-profiles/internal/repopath"
+	"github.com/alimoeeny/claude-profiles/internal/tty"
 	"github.com/spf13/cobra"
 )
 
@@ -18,16 +21,21 @@ var stdin io.Reader = os.Stdin
 var Version = "dev"
 
 var rootCmd = &cobra.Command{
-	Use:          "claude-profiles",
-	Short:        "Manage multiple Claude Code profiles",
-	Version:      Version,
-	SilenceUsage: true,
-	RunE:         runList,
+	Use:           "claude-profiles",
+	Short:         "Manage multiple Claude Code profiles",
+	Version:       Version,
+	SilenceUsage:  true,
+	SilenceErrors: true,
+	RunE:          runList,
 }
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		if errors.Is(err, claude.ErrRunning) {
+			fmt.Fprintln(os.Stderr, tty.ClaudeRunningMessage(os.Stderr))
+		} else {
+			fmt.Fprintln(os.Stderr, err)
+		}
 		os.Exit(1)
 	}
 }

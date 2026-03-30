@@ -35,7 +35,7 @@ func runSwitch(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if running {
-		return fmt.Errorf("Claude is running — close it before switching profiles")
+		return claude.ErrRunning
 	}
 
 	if !profile.ProfileExists(storeDir, target) {
