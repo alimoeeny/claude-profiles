@@ -35,7 +35,7 @@ func runCreateFresh(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if running {
-		return fmt.Errorf("Claude is running — close it before creating a new profile")
+		return claude.ErrRunning
 	}
 
 	if profile.ProfileExists(storeDir, name) {
